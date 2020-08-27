@@ -1,29 +1,10 @@
-# meta-patterns
-Design patterns for Python implemented with decorators and classes.
-
-
-## Getting Started
-
-Currently only one design pattern is implemented: `Listener`.
-
-#### Listener Pattern
-
-The `Listener` pattern (otherwise known as the `Observer` or `Publish-Subscribe` pattern) is a behavioral design pattern that lets you define a subscription mechanism to notify multiple objects about any events that happen to the object they’re observing ([source](https://refactoring.guru/design-patterns/observer)).
-
-
-Its use is demonstrated here:
-
-```python
 from metapatterns.listener import Listenable, listenable
 
 
 class Subject(Listenable):
     @listenable
     def myfunc(self, arg1):
-        """
-        @listenable indicates this function can be 'listened in on'.
-        It allows Listeners to hook into it (see MyListener)
-        """
+        """ @listenable indicates this function can be 'listened in on'. It allows Listeners to hook into it (see MyListener) """
         print("myfunc called with arg", arg1)
         return "Hoozah"
 
@@ -45,11 +26,8 @@ class MyListener(Subject.Listener):
     def on_myfunc2(self, arg1):
         """ This will not be called by the subject, because `myfunc2` is not a listenable function. """
         print("listened in on call to myfunc2 with arg", arg1)
-```
 
-We can run this as follows:
 
-```python
 if __name__ == "__main__":
     subject = Subject()
     print("# Calling myfunc without listener")
@@ -68,28 +46,3 @@ if __name__ == "__main__":
 
     print("\n# Calling myfunc again with listener removed")
     subject.myfunc(5)
-```
-
-which gives the output:
-
-```console
-# Calling myfunc without listener
-myfunc called with arg 3
-
-# Calling myfunc with listener
-listened in on call to myfunc with arg 5
-myfunc called with arg 5
-listened in on result of myfunc with arg 5 and result Hoozah
-
-# Calling myfunc2 with listener
-myfunc called with arg 7
-
-# Calling myfunc again with listener removed
-myfunc called with arg 5
-```
-
-
-## Future Work
- - Have the listener give warnings when an `on_` method doesn't match with its target (may indicate incorrect name change).
- - Implement more design patterns.
- - Suggestions? Contact [me](mailto:joeydepauw@gmail.com)!

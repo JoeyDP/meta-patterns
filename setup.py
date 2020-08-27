@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 version = os.environ.get("VERSION", "0.0.1")
 
 setuptools.setup(
-    name="meta-patterns", # Replace with your own username
+    name="meta-patterns",
     version=str(version),
     author="JoeyDP",
     author_email="joeydepauw@gmail.com",
