@@ -42,9 +42,9 @@ class MyListener(Subject.Listener):
     def on_myfunc_finished(self, result, arg1):
         print("listened in on result of myfunc with arg", arg1, "and result", result)
 
-    def on_myfunc2(self, arg1):
-        """ This will not be called by the subject, because `myfunc2` is not a listenable function. """
-        print("listened in on call to myfunc2 with arg", arg1)
+    # This cannot be defined because myfunc2 is not a listenable function in Subject
+    #def on_myfunc2(self, arg1):
+        #pass
 ```
 
 We can run this as follows:
