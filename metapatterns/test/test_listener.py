@@ -36,7 +36,6 @@ def subject_listener(subject):
             self.myfunc_called = False
             self.myfunc_arg = None
             self.myfunc_res = None
-            self.myfunc2_called = False
 
         def on_myfunc(self, arg):
             self.myfunc_called = True
@@ -45,10 +44,6 @@ def subject_listener(subject):
         def on_myfunc_finished(self, result, arg):
             assert self.myfunc_arg == arg
             self.myfunc_res = result
-
-        def on_myfunc2(self, arg):
-            """ Should not be called """
-            self.myfunc2_called = True
 
     return MyListener()
 
@@ -78,13 +73,11 @@ def test_add_listener(subject, subject_listener):
     assert subject.myfunc_called and subject.myfunc_arg == 3
     assert not subject.myfunc2_called and subject.myfunc2_arg == None
     assert subject_listener.myfunc_called and subject_listener.myfunc_arg == 3 and subject_listener.myfunc_res == 6
-    assert not subject_listener.myfunc2_called
 
     subject.myfunc2(9)
 
     assert subject.myfunc_called and subject.myfunc_arg == 3
     assert subject.myfunc2_called and subject.myfunc2_arg == 9
-    assert not subject_listener.myfunc2_called
 
 
 def test_remove_listener(subject, subject_listener):
@@ -95,14 +88,12 @@ def test_remove_listener(subject, subject_listener):
     assert subject.myfunc_called and subject.myfunc_arg == 3
     assert not subject.myfunc2_called and subject.myfunc2_arg == None
     assert not subject_listener.myfunc_called
-    assert not subject_listener.myfunc2_called
 
     subject.myfunc2(9)
 
     assert subject.myfunc_called and subject.myfunc_arg == 3
     assert subject.myfunc2_called and subject.myfunc2_arg == 9
     assert not subject_listener.myfunc_called
-    assert not subject_listener.myfunc2_called
 
 
 def test_remove_unregistered_listener(subject, subject_listener):
@@ -120,13 +111,11 @@ def test_init_listeners(subject, subject_listener):
     assert subject.myfunc_called and subject.myfunc_arg == 3
     assert not subject.myfunc2_called and subject.myfunc2_arg == None
     assert subject_listener.myfunc_called and subject_listener.myfunc_arg == 3 and subject_listener.myfunc_res == 6
-    assert not subject_listener.myfunc2_called
 
     subject.myfunc2(9)
 
     assert subject.myfunc_called and subject.myfunc_arg == 3
     assert subject.myfunc2_called and subject.myfunc2_arg == 9
-    assert not subject_listener.myfunc2_called
 
 
 def test_multiple_listeners(subject, subject_listener):
@@ -139,9 +128,7 @@ def test_multiple_listeners(subject, subject_listener):
     subject.myfunc(3)
 
     assert subject_listener.myfunc_called and subject_listener.myfunc_arg == 3 and subject_listener.myfunc_res == 6
-    assert not subject_listener.myfunc2_called
     assert subject_listener2.myfunc_called and subject_listener2.myfunc_arg == 3 and subject_listener2.myfunc_res == 6
-    assert not subject_listener2.myfunc2_called
 
 
 def test_remove_all(subject, subject_listener):
