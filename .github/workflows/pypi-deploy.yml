@@ -1,0 +1,33 @@
+name: pypi publish
+
+on:
+  release:
+    types: [published]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  deploy:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel
+      - name: Create dist from setup.py
+        env:
+          VERSION: ${{ github.event.release.tag_name }}
+        run: |
+          python setup.py sdist bdist_wheel
+      - name: pypi-publish
+        uses: pypa/gh-action-pypi-publish@v1.3.1
+        with:
+          # Password for your PyPI user or an access token
+          password: ${{ secrets.pypi_token }}
