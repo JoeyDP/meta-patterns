@@ -24,6 +24,26 @@ class Listenable:
             for subject in self.subjects[:]:
                 subject.remove_listener(self)
 
+        def __init_subclass__(listener_cls, **kwargs):
+            super().__init_subclass__()
+            listener_cls._check_targets()
+
+        @classmethod
+        def _get_target_methods(cls):
+            targets = {name for name, func in Listenable.__dict__.items() if
+                       callable(func) and getattr(func, 'listen', False)}
+            return targets
+
+        @classmethod
+        def _check_targets(cls):
+            """ Verify that functions with `on_` have a counterpart in subject_cls. """
+            hooks = {name[len("on_"):] for name, func in cls.__dict__.items() if callable(func) and name.startswith("on_")}
+            hooks = {name[:-len("_finished")] if name.endswith("_finished") else name for name in hooks}
+            targets = cls._get_target_methods()
+            unmatched = hooks - targets
+            if len(unmatched) > 0:
+                raise TypeError(f"{cls} tries to listen to the following functions, which don't exist in their subject: {unmatched}")
+
         @staticmethod
         def _get_method_called_name(method):
             return f"on_{method.__name__}"
@@ -79,21 +99,27 @@ class Listenable:
         for listener in self.listeners[:]:
             self.remove_listener(listener)
 
-    def __init_subclass__(cls):
-        class Listener(cls.Listener):
-            pass
+    def __init_subclass__(subject_cls):
+        class Listener(subject_cls.Listener):
+            @classmethod
+            def _get_target_methods(listener_cls):
+                methods = super()._get_target_methods()
+                targets = {name for name, func in subject_cls.__dict__.items() if
+                               callable(func) and getattr(func, 'listen', False)}
+                methods.update(targets)
+                return methods
 
-        cls.Listener = Listener
-        Listener.__qualname__ = f"{cls.__qualname__}.{Listener.__name__}"
+        subject_cls.Listener = Listener
+        Listener.__qualname__ = f"{subject_cls.__qualname__}.{Listener.__name__}"
 
-        method_list = [func for name, func in cls.__dict__.items() if
-                       callable(func) and not name.startswith("__") and getattr(func, 'listen', False)]
+        method_list = [func for name, func in subject_cls.__dict__.items() if
+                       callable(func) and getattr(func, 'listen', False)]
 
         def _hook(*args, **kwargs):
             pass
 
         for method in method_list:
-            name = cls.Listener._get_method_called_name(method)
-            setattr(cls.Listener, name, _hook)
-            name = cls.Listener._get_method_finished_name(method)
-            setattr(cls.Listener, name, _hook)
+            name = subject_cls.Listener._get_method_called_name(method)
+            setattr(subject_cls.Listener, name, _hook)
+            name = subject_cls.Listener._get_method_finished_name(method)
+            setattr(subject_cls.Listener, name, _hook)

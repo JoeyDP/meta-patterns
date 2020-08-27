@@ -211,3 +211,51 @@ def test_listen_subclass(subject):
     assert subsubject_listener.myfunc3_called
     assert subsubject_listener.myfunc3_arg == 5
     assert subsubject_listener.myfunc3_res == 50
+
+
+def test_error_on_without_target():
+    class Subject(Listenable):
+        def test_finished(self):
+            pass
+
+    with pytest.raises(TypeError):
+        class Listener1(Subject.Listener):
+            def on_test(self):
+                pass
+
+    with pytest.raises(TypeError):
+        class Listener2(Subject.Listener):
+            def on_test_finished(self):
+                pass
+
+
+def test_error_on_with_target_different_subject(subject):
+    class Subject1(Listenable):
+        pass
+
+    class Subject2(Listenable):
+        @listenable
+        def myfunc(self):
+            pass
+
+    with pytest.raises(TypeError):
+        class Listener1(Subject1.Listener):
+            def on_myfunc(self):
+                pass
+
+            def on_myfunc_finished(self):
+                pass
+
+    class Listener2(Subject2.Listener):
+        def on_myfunc(self):
+            pass
+
+        def on_myfunc_finished(self):
+            pass
+
+    class Listener3(Subject1.Listener, Subject2.Listener):
+        def on_myfunc(self):
+            pass
+
+        def on_myfunc_finished(self):
+            pass
