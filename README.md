@@ -88,7 +88,7 @@ myfunc called with arg 7
 myfunc called with arg 5
 ```
 
-Subclassing from `Subject.Listener` has the advantage of raising a `TypeError` when an `on_` function has no matching counterpart in `Subject`. This can prevent difficult to solve issues from changing the name of a function in `Subject`.
+Subclassing from `Subject.Listener` has the advantage of raising a `TypeError` when an `on_` function has no matching counterpart in `Subject`. This can help detect difficult to find problems that arise when changing the name of a function in `Subject`. Our method includes this check to guard against some issues that come with the loose coupling of the `Listener` pattern.
 
 
 ## Future Work
