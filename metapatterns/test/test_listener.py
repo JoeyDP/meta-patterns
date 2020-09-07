@@ -200,6 +200,69 @@ def test_listen_subclass(subject):
     assert subsubject_listener.myfunc3_res == 50
 
 
+def test_warn_not_listener_subclass(subject):
+    class MyListener(object):
+        def __init__(self):
+            super().__init__()
+            self.myfunc_called = False
+            self.myfunc_arg = None
+            self.myfunc_res = None
+
+        def on_add_listener_finished(self, subject, listener):
+            pass
+
+        def on_myfunc(self, arg):
+            self.myfunc_called = True
+            self.myfunc_arg = arg
+
+        def on_myfunc_finished(self, result, arg):
+            assert self.myfunc_arg == arg
+            self.myfunc_res = result
+
+
+    assert not subject.myfunc_called and subject.myfunc_arg == None
+    assert not subject.myfunc2_called and subject.myfunc2_arg == None
+
+    subject_listener = MyListener()
+    with pytest.warns(RuntimeWarning):
+        subject.add_listener(subject_listener)
+
+    subject.myfunc(3)
+
+    assert subject.myfunc_called and subject.myfunc_arg == 3
+    assert not subject.myfunc2_called and subject.myfunc2_arg == None
+    assert subject_listener.myfunc_called and subject_listener.myfunc_arg == 3 and subject_listener.myfunc_res == 6
+
+    subject.myfunc2(9)
+
+    assert subject.myfunc_called and subject.myfunc_arg == 3
+    assert subject.myfunc2_called and subject.myfunc2_arg == 9
+
+
+def test_no_warn_subclass_listener(subject, subject_listener):
+    class SubSubject(subject.__class__):
+        def __init__(self, listeners=None):
+            super().__init__(listeners)
+            self.myfunc3_called = False
+            self.myfunc3_arg = None
+
+        @listenable
+        def myfunc3(self, arg):
+            self.myfunc3_arg = arg
+            self.myfunc3_called = True
+            return arg * 10
+
+    subsubject = SubSubject()
+    with pytest.warns(None) as r:
+        subsubject.add_listener(subject_listener)
+
+    for warning in r:
+        assert False, f"Warning should not have been given: {warning}"
+
+    assert len(r) < 1,  r[0]
+    subsubject.myfunc3(3)
+
+
 def test_error_on_without_target():
     class Subject(Listenable):
         def test_finished(self):

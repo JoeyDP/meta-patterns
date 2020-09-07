@@ -5,11 +5,9 @@ import warnings
 def listenable(method):
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
-        for listener in self.listeners:
-            listener._method_called(method, *args, **kwargs)
+        self._method_called(method, *args, **kwargs)
         result = method(self, *args, **kwargs)
-        for listener in self.listeners:
-            listener._method_finished(method, result, *args, **kwargs)
+        self._method_finished(method, result, *args, **kwargs)
 
     wrapper.listen = True
     return wrapper
@@ -44,25 +42,6 @@ class Listenable:
             if len(unmatched) > 0:
                 raise TypeError(f"{cls} tries to listen to the following functions, which don't exist in their subject: {unmatched}")
 
-        @staticmethod
-        def _get_method_called_name(method):
-            return f"on_{method.__name__}"
-
-        @staticmethod
-        def _get_method_finished_name(method):
-            return f"on_{method.__name__}_finished"
-
-        def _method_called(self, method, *args, **kwargs):
-            # Note: Source of notification is purposely not included. If you need to know the source, create a separate listener per source
-            name = self._get_method_called_name(method)
-            f = getattr(self, name)
-            f(*args, **kwargs)
-
-        def _method_finished(self, method, result, *args, **kwargs):
-            name = self._get_method_finished_name(method)
-            f = getattr(self, name)
-            f(result, *args, **kwargs)
-
         def on_add_listener(self, listener):
             pass
 
@@ -87,8 +66,8 @@ class Listenable:
 
     @listenable
     def add_listener(self, listener):
-        if not isinstance(listener, self.__class__.Listener):
-            warnings.warn(f"Listener {listener} not an instance of {self.__class__.Listener}.", RuntimeWarning)
+        if not isinstance(listener, Listenable.Listener):
+            warnings.warn(f"Listener {listener} not an instance of {Listenable.Listener}.", RuntimeWarning)
         self.listeners.append(listener)
         return self
 
@@ -100,6 +79,29 @@ class Listenable:
     def remove_all_listeners(self):
         for listener in self.listeners[:]:
             self.remove_listener(listener)
+
+    @staticmethod
+    def _get_method_called_name(method):
+        return f"on_{method.__name__}"
+
+    @staticmethod
+    def _get_method_finished_name(method):
+        return f"on_{method.__name__}_finished"
+
+    def _method_called(self, method, *args, **kwargs):
+        # Note: Source of notification is purposely not included. If you need to know the source, create a separate listener per source
+        name = self._get_method_called_name(method)
+        for listener in self.listeners:
+            f = getattr(listener, name, None)
+            if f is not None:
+                f(*args, **kwargs)
+
+    def _method_finished(self, method, result, *args, **kwargs):
+        name = self._get_method_finished_name(method)
+        for listener in self.listeners:
+            f = getattr(listener, name, None)
+            if f is not None:
+                f(result, *args, **kwargs)
 
     def __init_subclass__(subject_cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -122,7 +124,7 @@ class Listenable:
             pass
 
         for method in method_list:
-            name = subject_cls.Listener._get_method_called_name(method)
+            name = subject_cls._get_method_called_name(method)
             setattr(subject_cls.Listener, name, _hook)
-            name = subject_cls.Listener._get_method_finished_name(method)
+            name = subject_cls._get_method_finished_name(method)
             setattr(subject_cls.Listener, name, _hook)
