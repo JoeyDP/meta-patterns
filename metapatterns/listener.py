@@ -25,7 +25,7 @@ class Listenable:
                 subject.remove_listener(self)
 
         def __init_subclass__(listener_cls, **kwargs):
-            super().__init_subclass__()
+            super().__init_subclass__(**kwargs)
             listener_cls._check_targets()
 
         @classmethod
@@ -77,10 +77,12 @@ class Listenable:
             if self == listener:
                 self.subjects.remove(subject)
 
-    def __init__(self, listeners=None):
+    def __init__(self, listeners=None, **kwargs):
+        super().__init__(**kwargs)
         self.listeners = list()
         if listeners is not None:
             for listener in listeners:
+                # explicitly call add_listener.
                 self.add_listener(listener)
 
     @listenable
@@ -99,7 +101,8 @@ class Listenable:
         for listener in self.listeners[:]:
             self.remove_listener(listener)
 
-    def __init_subclass__(subject_cls):
+    def __init_subclass__(subject_cls, **kwargs):
+        super().__init_subclass__(**kwargs)
         class Listener(subject_cls.Listener):
             @classmethod
             def _get_target_methods(listener_cls):
