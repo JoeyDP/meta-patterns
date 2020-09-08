@@ -37,11 +37,11 @@ def subject_listener(subject):
             self.myfunc_arg = None
             self.myfunc_res = None
 
-        def on_myfunc(self, arg):
+        def on_myfunc(self, subject, arg):
             self.myfunc_called = True
             self.myfunc_arg = arg
 
-        def on_myfunc_finished(self, result, arg):
+        def on_myfunc_finished(self, subject, result, arg):
             assert self.myfunc_arg == arg
             self.myfunc_res = result
 
@@ -179,11 +179,11 @@ def test_listen_subclass(subject):
             self.myfunc3_arg = None
             self.myfunc3_res = None
 
-        def on_myfunc3(self, arg):
+        def on_myfunc3(self, subject, arg):
             self.myfunc3_called = True
             self.myfunc3_arg = arg
 
-        def on_myfunc3_finished(self, result, arg):
+        def on_myfunc3_finished(self, subject, result, arg):
             assert self.myfunc3_arg == arg
             self.myfunc3_res = result
 
@@ -208,14 +208,14 @@ def test_warn_not_listener_subclass(subject):
             self.myfunc_arg = None
             self.myfunc_res = None
 
-        def on_add_listener_finished(self, subject, listener):
+        def on_add_listener_finished(self, subject, result, listener):
             pass
 
-        def on_myfunc(self, arg):
+        def on_myfunc(self, subject, arg):
             self.myfunc_called = True
             self.myfunc_arg = arg
 
-        def on_myfunc_finished(self, result, arg):
+        def on_myfunc_finished(self, subject, result, arg):
             assert self.myfunc_arg == arg
             self.myfunc_res = result
 

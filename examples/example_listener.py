@@ -17,10 +17,10 @@ class MyListener(Subject.Listener):
     Identify this class as a listener of `Subject` through inheritance.
     This makes it so not all listenable methods need to be implemented (they have a default empty implementation in `Subject.Listener`).
     """
-    def on_myfunc(self, arg1):
+    def on_myfunc(self, subject, arg1):
         print("listened in on call to myfunc with arg", arg1)
 
-    def on_myfunc_finished(self, result, arg1):
+    def on_myfunc_finished(self, subject, result, arg1):
         print("listened in on result of myfunc with arg", arg1, "and result", result)
 
     # This cannot be defined because myfunc2 is not a listenable function in Subject

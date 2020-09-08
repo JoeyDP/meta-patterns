@@ -5,9 +5,9 @@ import warnings
 def listenable(method):
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
-        self._method_called(method, *args, **kwargs)
+        self._method_called(method, self, *args, **kwargs)
         result = method(self, *args, **kwargs)
-        self._method_finished(method, result, *args, **kwargs)
+        self._method_finished(method, self, result, *args, **kwargs)
 
     wrapper.listen = True
     return wrapper
@@ -42,17 +42,17 @@ class Listenable:
             if len(unmatched) > 0:
                 raise TypeError(f"{cls} tries to listen to the following functions, which don't exist in their subject: {unmatched}")
 
-        def on_add_listener(self, listener):
+        def on_add_listener(self, subject, listener):
             pass
 
-        def on_add_listener_finished(self, subject, listener):
+        def on_add_listener_finished(self, subject, result, listener):
             if self == listener:
                 self.subjects.append(subject)
 
-        def on_remove_listener(self, listener):
+        def on_remove_listener(self, subject, listener):
             pass
 
-        def on_remove_listener_finished(self, subject, listener):
+        def on_remove_listener_finished(self, subject, result, listener):
             if self == listener:
                 self.subjects.remove(subject)
 
@@ -69,12 +69,10 @@ class Listenable:
         if not isinstance(listener, Listenable.Listener):
             warnings.warn(f"Listener {listener} not an instance of {Listenable.Listener}.", RuntimeWarning)
         self.listeners.append(listener)
-        return self
 
     @listenable
     def remove_listener(self, listener):
         self.listeners.remove(listener)
-        return self
 
     def remove_all_listeners(self):
         for listener in self.listeners[:]:
@@ -88,20 +86,19 @@ class Listenable:
     def _get_method_finished_name(method):
         return f"on_{method.__name__}_finished"
 
-    def _method_called(self, method, *args, **kwargs):
-        # Note: Source of notification is purposely not included. If you need to know the source, create a separate listener per source
+    def _method_called(self, method, subject, *args, **kwargs):
         name = self._get_method_called_name(method)
         for listener in self.listeners:
             f = getattr(listener, name, None)
             if f is not None:
-                f(*args, **kwargs)
+                f(subject, *args, **kwargs)
 
-    def _method_finished(self, method, result, *args, **kwargs):
+    def _method_finished(self, method, subject, result, *args, **kwargs):
         name = self._get_method_finished_name(method)
         for listener in self.listeners:
             f = getattr(listener, name, None)
             if f is not None:
-                f(result, *args, **kwargs)
+                f(subject, result, *args, **kwargs)
 
     def __init_subclass__(subject_cls, **kwargs):
         super().__init_subclass__(**kwargs)
