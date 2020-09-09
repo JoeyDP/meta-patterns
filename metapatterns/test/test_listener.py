@@ -68,16 +68,17 @@ def test_add_listener(subject, subject_listener):
     subject.add_listener(subject_listener)
     assert subject in subject_listener.subjects
 
-    subject.myfunc(3)
+    assert subject.myfunc(3) == 6
 
     assert subject.myfunc_called and subject.myfunc_arg == 3
     assert not subject.myfunc2_called and subject.myfunc2_arg == None
     assert subject_listener.myfunc_called and subject_listener.myfunc_arg == 3 and subject_listener.myfunc_res == 6
 
-    subject.myfunc2(9)
+    assert subject.myfunc2(9) == 36
 
     assert subject.myfunc_called and subject.myfunc_arg == 3
     assert subject.myfunc2_called and subject.myfunc2_arg == 9
+    assert subject_listener.myfunc_called and subject_listener.myfunc_arg == 3 and subject_listener.myfunc_res == 6
 
 
 def test_remove_listener(subject, subject_listener):

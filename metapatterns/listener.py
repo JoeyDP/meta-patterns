@@ -8,6 +8,7 @@ def listenable(method):
         self._method_called(method, self, *args, **kwargs)
         result = method(self, *args, **kwargs)
         self._method_finished(method, self, result, *args, **kwargs)
+        return result
 
     wrapper.listen = True
     return wrapper
